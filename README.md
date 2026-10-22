@@ -98,14 +98,12 @@ You can also switch between **Grams (`g`)** and **Percentage (`%`)** directly in
          "kcal": 120,
          "protein": 22.5,
          "carbs": 0,
-         "fat": 2.6,
-         "adjust": { "min": 80, "max": 300, "step": 10 }
+         "fat": 2.6
        }
      ]
    }
    ```
-   - `per`: The reference amount (`100` for per-100g/ml values, `1` for per-piece items like eggs or fruit).
-   - `adjust`: `{ "min", "max", "step" }` bounds for automatic scaling, or `false` to keep the ingredient fixed at `amount`.
+   - `per`: The reference amount (`100` for per-100g/ml values, `1` for per-piece/spoon items).
 2. Register the filename in `data/recipes/index.json`.
 
 ## Features

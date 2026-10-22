@@ -1,13 +1,14 @@
 // Daily summary: full card (sidebar / top on mobile) + slim sticky bar (mobile).
 
-import { toleranceStatus } from '../planner.js';
-import { fmtKcal, fmtG, fmtPct, MACROS, STATUS_CLASS } from './format.js';
+import { fmtKcal, fmtG, MACROS, STATUS_CLASS } from './format.js';
 import { icons } from './icons.js';
 
 function statusFor(plan, config, key) {
-  // While the day still has empty planned slots, progress is neutral (not "bad").
-  if (plan.emptySlots > 0) return 'neutral';
-  return toleranceStatus(plan.deviation[key], config.tolerance[key] ?? 5);
+  const tol = config.tolerance[key] ?? 5;
+  const dev = plan.deviation[key];
+  if (dev > tol) return 'bad';
+  if (Math.abs(dev) <= tol) return 'ok';
+  return 'neutral';
 }
 
 function pct(actual, target) {
@@ -19,23 +20,25 @@ export function renderSummary(el, plan, config) {
   const { totals, targets, remaining } = plan;
   const kcalPct = pct(totals.kcal, targets.kcal);
   const kcalStatus = statusFor(plan, config, 'kcal');
-  const preparedCount = plan.meals.filter((m) => !m.missing && !m.fixed).length;
+  const totalMeals = plan.meals.filter((m) => !m.missing).length;
   const fixedCount = plan.meals.filter((m) => m.fixed).length;
+  const maxMeals = config.plannedMealsPerDay || 4;
 
   const macroRows = MACROS.map(({ key, label }) => {
     const status = statusFor(plan, config, key);
     const rem = remaining[key];
+    const macroPct = pct(totals[key], targets[key]);
     return `
       <div>
         <div class="flex justify-between text-sm">
           <span class="font-medium">${label}</span>
           <span><b>${fmtG(totals[key])}</b> / ${fmtG(targets[key])} g</span>
         </div>
-        <progress class="progress ${STATUS_CLASS.progress[status]} w-full" value="${Math.min(100, pct(totals[key], targets[key]))}" max="100"
-          aria-label="${label} ${Math.round(pct(totals[key], targets[key]))}% of target"></progress>
+        <progress class="progress ${STATUS_CLASS.progress[status]} w-full" value="${Math.min(100, macroPct)}" max="100"
+          aria-label="${label} ${Math.round(macroPct)}% of target"></progress>
         <div class="text-xs opacity-70 flex justify-between">
           <span>${rem >= 0 ? `${fmtG(rem)} g left` : `<span class="text-error">${fmtG(-rem)} g over</span>`}</span>
-          ${plan.emptySlots === 0 ? `<span class="${STATUS_CLASS.text[status]}">${fmtPct(plan.deviation[key])}</span>` : ''}
+          <span class="${STATUS_CLASS.text[status]}">${Math.round(macroPct)}%</span>
         </div>
       </div>`;
   }).join('');
@@ -69,15 +72,13 @@ export function renderSummary(el, plan, config) {
             <div>${remaining.kcal >= 0
               ? `<b>${fmtKcal(remaining.kcal)}</b> kcal left`
               : `<b class="text-error">${fmtKcal(-remaining.kcal)}</b> kcal over`}</div>
-            <div class="opacity-70">${preparedCount} of ${Math.max(plan.plannedMealsPerDay, preparedCount)} prepared${fixedCount ? ` · ${fixedCount} fixed` : ''}</div>
-            ${plan.emptySlots === 0
-              ? `<div class="${STATUS_CLASS.text[kcalStatus]} font-medium">${fmtPct(plan.deviation.kcal)} vs target</div>`
-              : `<div class="opacity-70">${plan.emptySlots} slot${plan.emptySlots > 1 ? 's' : ''} still open</div>`}
+            <div class="opacity-70">${totalMeals} / ${maxMeals} meals${fixedCount ? ` (${fixedCount} fixed)` : ''}</div>
+            <div class="${STATUS_CLASS.text[kcalStatus]} font-medium">${Math.round(kcalPct)}% of daily target</div>
           </div>
         </div>
         <div class="space-y-3">${macroRows}</div>
         <div class="text-xs opacity-60 border-t border-base-300 pt-2">
-          Mode: <b>${config.macroMode}</b> · solver: <b>${config.solver.mode}</b> · meals: <b>${config.plannedMealsPerDay}</b>
+          Mode: <b>${config.macroMode}</b> · max meals: <b>${maxMeals}</b> · tolerance ±${config.tolerance.kcal}% kcal
         </div>
       </div>
     </div>`;

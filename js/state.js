@@ -36,7 +36,7 @@ function sanitizeTargetOverride(raw, kcalPerGram) {
   return { macroMode, rawTargets: rt, targets };
 }
 
-function sanitizeMeal(m) {
+function sanitizeMeal(m, recipesById) {
   if (!m || typeof m !== 'object') return null;
   const instanceId = typeof m.instanceId === 'string' ? m.instanceId : newId();
   if (m.type === 'fixed') {
@@ -54,6 +54,17 @@ function sanitizeMeal(m) {
     };
   }
   if (typeof m.recipeId !== 'string') return null;
+  const rawOverrides = m.overrides && typeof m.overrides === 'object' ? m.overrides : {};
+  const recipe = recipesById?.get(m.recipeId);
+  const overrides = {};
+  for (const [ingId, val] of Object.entries(rawOverrides)) {
+    const num = Number(val);
+    if (!Number.isFinite(num)) continue;
+    const clamped = Math.max(0, num);
+    const ing = recipe?.ingredients?.find((i) => i.id === ingId);
+    if (ing && Math.abs(clamped - ing.amount) < 1e-6) continue;
+    overrides[ingId] = clamped;
+  }
   return {
     instanceId,
     type: 'prepared',
@@ -61,16 +72,16 @@ function sanitizeMeal(m) {
     weight: Number(m.weight) > 0 ? Number(m.weight) : 1,
     locked: !!m.locked,
     frozenAmounts: m.frozenAmounts && typeof m.frozenAmounts === 'object' ? m.frozenAmounts : null,
-    overrides: m.overrides && typeof m.overrides === 'object' ? m.overrides : {},
+    overrides,
   };
 }
 
-function sanitizeDay(raw, date, kcalPerGram) {
+function sanitizeDay(raw, date, kcalPerGram, recipesById) {
   if (!raw || !Array.isArray(raw.meals)) return emptyDay(date);
   return {
     date,
     targetOverride: sanitizeTargetOverride(raw.targetOverride, kcalPerGram),
-    meals: raw.meals.map(sanitizeMeal).filter(Boolean),
+    meals: raw.meals.map((m) => sanitizeMeal(m, recipesById)).filter(Boolean),
   };
 }
 
@@ -100,7 +111,7 @@ export function createStore({ recipesById, config, storage = globalThis.localSto
   function load(date) {
     try {
       const raw = storage?.getItem(KEY_PREFIX + date);
-      return sanitizeDay(raw ? JSON.parse(raw) : null, date, config.kcalPerGram);
+      return sanitizeDay(raw ? JSON.parse(raw) : null, date, config.kcalPerGram, recipesById);
     } catch {
       return emptyDay(date);
     }
@@ -211,12 +222,23 @@ export function createStore({ recipesById, config, storage = globalThis.localSto
       this.moveMeal(from, position);
     },
 
-    /** value = number → override for today; null/'' → remove override. */
+    /** value = number → override for today; null/'' or equal to recipe default → remove override. */
     setOverride(instanceId, ingredientId, value) {
       const meal = find(instanceId);
       const num = Number(value);
-      if (value === null || value === '' || !Number.isFinite(num)) delete meal.overrides[ingredientId];
-      else meal.overrides[ingredientId] = Math.max(0, num);
+      const clamped = Math.max(0, num);
+      const recipe = recipesById.get(meal.recipeId);
+      const ing = recipe?.ingredients?.find((i) => i.id === ingredientId);
+      if (
+        value === null ||
+        value === '' ||
+        !Number.isFinite(num) ||
+        (ing && Math.abs(clamped - ing.amount) < 1e-6)
+      ) {
+        delete meal.overrides[ingredientId];
+      } else {
+        meal.overrides[ingredientId] = clamped;
+      }
       if (meal.locked && meal.frozenAmounts) delete meal.frozenAmounts[ingredientId];
       commit();
     },

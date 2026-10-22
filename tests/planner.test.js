@@ -8,54 +8,64 @@ const read = (p) => JSON.parse(readFileSync(new URL(`./data/${p}`, import.meta.u
 const { config } = validateConfig(read('config.json'));
 const index = read('recipes/index.json');
 const recipesById = new Map(index.recipes.map((f) => read(`recipes/${f}`)).map((r) => [r.id, r]));
+const chickenSkyr = JSON.parse(readFileSync(new URL('../data/recipes/chicken-in-skyr.json', import.meta.url)));
+recipesById.set(chickenSkyr.id, chickenSkyr);
 
 const day = (...ids) => ({
   meals: ids.map((recipeId, i) => ({ instanceId: `m${i}`, recipeId, weight: 1, locked: false, overrides: {} })),
 });
 const amountsOf = (mealPlan) => mealPlan.solution.items.map((i) => i.amount);
 
-test('first meal only gets 1/plannedMealsPerDay of the day', () => {
-  const plan = planDay(day('oatmeal-whey'), recipesById, config);
-  const t = plan.meals[0].target;
-  assert.ok(Math.abs(t.kcal - config.targets.kcal / config.plannedMealsPerDay) < 1e-9);
-  assert.equal(plan.emptySlots, config.plannedMealsPerDay - 1);
+test('first meal has full remaining daily budget and keeps recipe amounts when under limit', () => {
+  const plan = planDay(day('chicken-in-skyr'), recipesById, config);
+  assert.deepEqual(plan.meals[0].target, config.targets);
+  assert.equal(plan.meals[0].solution.overLimit, false);
+  for (const it of plan.meals[0].solution.items) {
+    assert.equal(it.amount, it.ingredient.amount);
+  }
 });
 
-test('weights change the share', () => {
-  const d = day('oatmeal-whey', 'chicken-rice-bowl');
-  d.meals[0].weight = 2;
-  const plan = planDay(d, recipesById, config);
-  // share = 2 / (2 + 1 + 2 empty slots) = 0.4
-  assert.ok(Math.abs(plan.meals[0].share - 0.4) < 1e-9);
+test('later meal that exceeds remaining daily limit keeps amounts and flags overLimit', () => {
+  // 2 x chicken-in-skyr: each has 110.7g protein; daily target has 180g protein
+  // Meal 1 (110.7g P) fits -> overLimit: false
+  // Meal 2 (110.7g P, only 69.3g P left) -> keeps full recipe amounts and flags overLimit: true
+  const plan = planDay(day('chicken-in-skyr', 'chicken-in-skyr'), recipesById, config);
+  assert.equal(plan.meals[0].solution.overLimit, false);
+  assert.equal(plan.meals[1].solution.overLimit, true);
+  assert.ok(plan.meals[1].solution.overBy.protein > 40);
+  for (const it of plan.meals[1].solution.items) {
+    assert.equal(it.amount, it.ingredient.amount);
+  }
 });
 
-test('last planned meal closes the day near the target', () => {
-  const plan = planDay(day('oatmeal-whey', 'chicken-rice-bowl', 'greek-yogurt-bowl', 'salmon-potatoes'), recipesById, config);
-  assert.equal(plan.meals[3].share, 1);
-  assert.ok(Math.abs(plan.deviation.kcal) < 5, `day kcal deviation ${plan.deviation.kcal.toFixed(1)}%`);
-  assert.ok(Math.abs(plan.deviation.protein) < 10, `day protein deviation ${plan.deviation.protein.toFixed(1)}%`);
-});
-
-test('override in meal k leaves earlier meals unchanged and recalculates later ones', () => {
-  const base = day('oatmeal-whey', 'chicken-rice-bowl', 'greek-yogurt-bowl', 'beef-pasta');
+test('override in meal 1 only changes that ingredient and updates remaining budget for later meals', () => {
+  const base = day('chicken-in-skyr', 'chicken-rice-bowl', 'beef-pasta', 'salmon-potatoes');
   const before = planDay(base, recipesById, config);
 
   const changed = structuredClone(base);
-  changed.meals[1].overrides = { rice: 180 };
+  changed.meals[0].overrides = { 'skyr-natural': 250 };
   const after = planDay(changed, recipesById, config);
 
-  assert.deepEqual(amountsOf(after.meals[0]), amountsOf(before.meals[0]));
-  assert.notDeepEqual(amountsOf(after.meals[2]), amountsOf(before.meals[2]));
-  assert.ok(after.meals[2].target.kcal < before.meals[2].target.kcal);
-  assert.ok(after.meals[3].target.carbs < before.meals[3].target.carbs);
+  // Other ingredients in meal 1 (peanut-butter, chicken-breast-strips, honey) are unchanged
+  const meal1Before = Object.fromEntries(before.meals[0].solution.items.map((i) => [i.ingredient.id, i.amount]));
+  const meal1After = Object.fromEntries(after.meals[0].solution.items.map((i) => [i.ingredient.id, i.amount]));
+  assert.equal(meal1After['skyr-natural'], 250);
+  assert.equal(meal1After['peanut-butter'], meal1Before['peanut-butter']);
+  assert.equal(meal1After['chicken-breast-strips'], meal1Before['chicken-breast-strips']);
+  assert.equal(meal1After.honey, meal1Before.honey);
+
+  // Remaining budget before subsequent meals decreases while their amounts stay untouched
+  assert.ok(after.meals[1].target.protein < before.meals[1].target.protein);
+  assert.deepEqual(amountsOf(after.meals[1]), amountsOf(before.meals[1]));
 });
 
-test('reordering changes the result', () => {
-  // yogurt in slot 3 (1/2 of remainder) vs slot 4 (whole remainder)
-  const a = planDay(day('oatmeal-whey', 'beef-pasta', 'greek-yogurt-bowl', 'chicken-rice-bowl'), recipesById, config);
-  const b = planDay(day('oatmeal-whey', 'beef-pasta', 'chicken-rice-bowl', 'greek-yogurt-bowl'), recipesById, config);
-  assert.notDeepEqual(amountsOf(a.meals[2]), amountsOf(b.meals[3]));
-  assert.notDeepEqual(amountsOf(a.meals[3]), amountsOf(b.meals[2]));
+test('reordering meals changes which meal is flagged as over the remaining daily limit', () => {
+  const a = planDay(day('chicken-in-skyr', 'beef-pasta', 'salmon-potatoes'), recipesById, config);
+  const b = planDay(day('salmon-potatoes', 'beef-pasta', 'chicken-in-skyr'), recipesById, config);
+  assert.equal(a.meals[0].solution.overLimit, false);
+  assert.equal(a.meals[2].solution.overLimit, true);
+  assert.equal(b.meals[0].solution.overLimit, false);
+  assert.equal(b.meals[2].solution.overLimit, true);
 });
 
 test('locked meal keeps its frozen amounts', () => {
@@ -117,11 +127,9 @@ test('percentage macroMode converts config targets to grams for planning', () =>
   assert.deepEqual(errors, []);
   assert.deepEqual(warnings, []);
   assert.equal(pctCfg.macroMode, 'percentage');
-  // 30% of 2400 = 720 kcal -> 180g P; 40% = 960 kcal -> 240g C; 30% = 720 kcal -> 80g F
   assert.deepEqual(pctCfg.targets, { kcal: 2400, protein: 180, carbs: 240, fat: 80 });
   assert.deepEqual(pctCfg.rawTargets, { kcal: 2400, protein: 30, carbs: 40, fat: 30 });
 
-  // Also supports string percentages like "25%" and custom kcalPerGram
   const { config: strCfg, errors: strErr } = validateConfig({
     targets: { kcal: 2000, protein: '30%', carbs: '50%', fat: '20%' },
     kcalPerGram: { protein: 4, carbs: 4, fat: 8 },
@@ -130,32 +138,30 @@ test('percentage macroMode converts config targets to grams for planning', () =>
   assert.equal(strCfg.macroMode, 'percentage');
   assert.equal(strCfg.targets.protein, 150);
   assert.equal(strCfg.targets.carbs, 250);
-  assert.equal(strCfg.targets.fat, 50); // 400 kcal / 8 kcal/g = 50 g
+  assert.equal(strCfg.targets.fat, 50);
 });
 
 test('fixed meals never scale and only prepared meals after them recalculate when reordered', () => {
   const coffee = {
     instanceId: 'f_coffee',
     type: 'fixed',
-    name: 'Latte',
-    nutrition: { kcal: 200, protein: 10, carbs: 16, fat: 10 },
+    name: 'Big Fixed Meal',
+    nutrition: { kcal: 1200, protein: 90, carbs: 100, fat: 40 },
   };
-  const prep1 = { instanceId: 'm1', type: 'prepared', recipeId: 'oatmeal-whey', weight: 1, locked: false, overrides: {} };
+  const prep1 = { instanceId: 'm1', type: 'prepared', recipeId: 'chicken-in-skyr', weight: 1, locked: false, overrides: {} };
   const prep2 = { instanceId: 'm2', type: 'prepared', recipeId: 'chicken-rice-bowl', weight: 1, locked: false, overrides: {} };
 
   // Order A: prep1 -> coffee (fixed) -> prep2
   const planA = planDay({ meals: [prep1, coffee, prep2] }, recipesById, config);
   assert.equal(planA.meals[1].fixed, true);
   assert.deepEqual(planA.meals[1].solution.totals, coffee.nutrition);
+  assert.equal(planA.meals[0].solution.overLimit, false);
+  assert.equal(planA.meals[2].solution.overLimit, true);
 
   // Order B: coffee (fixed) -> prep1 -> prep2
   const planB = planDay({ meals: [coffee, prep1, prep2] }, recipesById, config);
   assert.equal(planB.meals[0].fixed, true);
   assert.deepEqual(planB.meals[0].solution.totals, coffee.nutrition);
-
-  // prep1 was before coffee in A, and is after coffee in B -> prep1's target decreases in B
-  assert.ok(planB.meals[1].target.kcal < planA.meals[0].target.kcal);
+  // Now prep1 is after the 90g P fixed meal, so prep1 (110.7g P) exceeds remaining protein (90g P) and is flagged overLimit!
+  assert.equal(planB.meals[1].solution.overLimit, true);
 });
-
-
-

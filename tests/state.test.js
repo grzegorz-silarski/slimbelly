@@ -49,6 +49,11 @@ test('moveMeal, setPosition, remove, clear override', () => {
   s.setPosition(c, 2);
   assert.deepEqual(s.getDay().meals.map((m) => m.instanceId), [a, b, c]);
   s.setOverride(a, 'oats', 40);
+  assert.equal(s.getDay().meals[0].overrides.oats, 40);
+  // Typing the recipe default (70g for oats in oatmeal-whey) removes the override automatically
+  s.setOverride(a, 'oats', 70);
+  assert.deepEqual(s.getDay().meals[0].overrides, {});
+  s.setOverride(a, 'oats', 40);
   s.setOverride(a, 'oats', '');
   assert.deepEqual(s.getDay().meals[0].overrides, {});
   s.removeMeal(b);

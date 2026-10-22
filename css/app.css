@@ -34,6 +34,16 @@
   }
 }
 
+/* Show the remaining ring track on radial-progress like horizontal progress bars */
+.radial-progress::before {
+  background:
+    radial-gradient(farthest-side, currentColor 98%, #0000) top / var(--thickness) var(--thickness) no-repeat,
+    conic-gradient(
+      currentColor calc(var(--value) * 1%),
+      color-mix(in oklab, var(--color-base-content, currentColor) 20%, transparent) 0
+    );
+}
+
 /* Avoid flash of unstyled content before Tailwind browser build runs */
 [data-icon]:empty {
   display: inline-block;

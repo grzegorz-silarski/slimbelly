@@ -12,8 +12,7 @@
             "kcal": 115,
             "protein": 22.5,
             "carbs": 0,
-            "fat": 2.6,
-            "adjust": { "min": 150, "max": 600, "step": 25 }
+            "fat": 2.6
         },
         {
             "id": "skyr-natural",
@@ -24,8 +23,7 @@
             "kcal": 63,
             "protein": 11,
             "carbs": 4,
-            "fat": 0.2,
-            "adjust": { "min": 50, "max": 300, "step": 25 }
+            "fat": 0.2
         },
         {
             "id": "peanut-butter",
@@ -36,8 +34,7 @@
             "kcal": 90,
             "protein": 3.8,
             "carbs": 3,
-            "fat": 7.5,
-            "adjust": { "min": 0.5, "max": 3, "step": 0.5 }
+            "fat": 7.5
         },
         {
             "id": "honey",
@@ -48,8 +45,7 @@
             "kcal": 64,
             "protein": 0.1,
             "carbs": 17,
-            "fat": 0,
-            "adjust": { "min": 0, "max": 3, "step": 0.5 }
+            "fat": 0
         },
         {
             "id": "chilli-paste",
@@ -60,8 +56,7 @@
             "kcal": 15,
             "protein": 0.3,
             "carbs": 3,
-            "fat": 0.2,
-            "adjust": false
+            "fat": 0.2
         },
         {
             "id": "herbs",
@@ -72,9 +67,7 @@
             "kcal": 0,
             "protein": 0,
             "carbs": 0,
-            "fat": 0,
-            "adjust": false
+            "fat": 0
         }
     ]
 }
-

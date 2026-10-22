@@ -52,12 +52,6 @@ export function createMealSettingsModal(dialog, { store, onRemoved }) {
             ? ''
             : `
         <fieldset class="fieldset">
-          <legend class="fieldset-legend">Share weight</legend>
-          <input type="number" class="input w-32" min="0.25" step="0.25" value="${fmtAmount(meal.weight || 1)}" data-act="weight" aria-label="Share weight" />
-          <p class="label whitespace-normal">Relative share of the remaining daily budget (1 = equal split, 2 = double portion).</p>
-        </fieldset>
-
-        <fieldset class="fieldset">
           <legend class="fieldset-legend">Lock amounts</legend>
           <label class="label cursor-pointer gap-3 text-base-content">
             <input type="checkbox" class="toggle toggle-warning" data-act="lock" ${meal.locked ? 'checked' : ''} />

@@ -88,10 +88,16 @@ async function main() {
   const render = () => {
     const plan = store.getPlan();
     const activeConfig = store.getConfig();
+    const maxMeals = activeConfig.plannedMealsPerDay || 4;
+    const limitReached = store.getDay().meals.length >= maxMeals;
     renderSummary($('#summary'), plan, activeConfig);
     renderSummaryBar($('#summary-bar'), plan, activeConfig);
     renderMealList(listEl, plan, { expanded, config: activeConfig });
     $('#empty-state').classList.toggle('hidden', plan.meals.length > 0);
+    document.querySelectorAll('[data-action="open-add"], [data-action="open-add-fixed"]').forEach((btn) => {
+      btn.disabled = limitReached;
+      btn.title = limitReached ? `Daily limit of ${maxMeals} meals reached` : '';
+    });
     updateTodayLabel(store.getDay().date);
   };
 
@@ -136,13 +142,23 @@ async function main() {
     const el = e.target.closest('[data-action]');
     if (!el || listEl.contains(el)) return;
     switch (el.dataset.action) {
-      case 'open-add':
+      case 'open-add': {
+        const maxMeals = store.getConfig().plannedMealsPerDay || 4;
+        if (store.getDay().meals.length >= maxMeals) {
+          return toast(`Daily limit of ${maxMeals} meals reached`, 'warning');
+        }
         if (!recipes.length) return toast('No recipes loaded – see data/recipes/README.md to add recipes', 'info');
         addModal.open();
         break;
-      case 'open-add-fixed':
+      }
+      case 'open-add-fixed': {
+        const maxMeals = store.getConfig().plannedMealsPerDay || 4;
+        if (store.getDay().meals.length >= maxMeals) {
+          return toast(`Daily limit of ${maxMeals} meals reached`, 'warning');
+        }
         addFixedModal.open();
         break;
+      }
       case 'open-target':
         document.activeElement?.blur();
         targetModal.open();
