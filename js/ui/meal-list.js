@@ -73,9 +73,13 @@ function fixedMealCard(mp) {
               <span class="badge badge-neutral badge-sm gap-1">${icons.lock('size-3')}Fixed</span>
               ${solution.overLimit ? '<span class="badge badge-error badge-outline badge-sm">over daily limit</span>' : ''}
             </div>
-            <div class="text-sm"><b>${fmtKcal(solution.totals.kcal)} kcal</b> <span class="opacity-70">· ${macroLine(solution.totals)}</span></div>
+            <div class="text-sm">
+              ${meal.amount && meal.unit ? `<span class="font-medium">${fmtAmount(meal.amount)} ${escapeHtml(meal.unit)}</span> · ` : ''}<b>${fmtKcal(solution.totals.kcal)} kcal</b> <span class="opacity-70">· ${macroLine(solution.totals)}</span>
+            </div>
             ${solution.overLimit
               ? `<div class="text-xs text-error font-medium">Over remaining daily limit by ${overLimitSummary(solution.overBy)}</div>`
+              : meal.per100 && meal.unit
+              ? `<div class="text-xs opacity-60">per 100 ${escapeHtml(meal.unit)}: ${fmtKcal(meal.per100.kcal)} kcal · ${macroLine(meal.per100)}</div>`
               : '<div class="text-xs opacity-60">Fixed nutrition</div>'}
           </div>
           <button type="button" class="btn btn-ghost btn-sm btn-square" data-action="settings" data-id="${id}" aria-label="Meal settings" title="Meal settings">${icons.cog()}</button>

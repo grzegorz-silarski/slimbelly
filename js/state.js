@@ -2,7 +2,7 @@
 // Recipes are never modified – overrides live in the day state only.
 
 import { planDay } from './planner.js';
-import { macrosPercentToGrams } from './nutrition.js';
+import { macrosPercentToGrams, clean } from './nutrition.js';
 
 export const KEY_PREFIX = 'slimbelly:day:';
 const KEEP_DAYS = 30;
@@ -41,10 +41,23 @@ function sanitizeMeal(m, recipesById) {
   const instanceId = typeof m.instanceId === 'string' ? m.instanceId : newId();
   if (m.type === 'fixed') {
     const n = m.nutrition || {};
+    const amount = Number(m.amount) > 0 ? Number(m.amount) : null;
+    const unit = typeof m.unit === 'string' && m.unit.trim() ? m.unit.trim() : null;
+    const p = m.per100 && typeof m.per100 === 'object' ? m.per100 : null;
     return {
       instanceId,
       type: 'fixed',
       name: typeof m.name === 'string' && m.name.trim() ? m.name.trim() : 'Fixed meal',
+      amount,
+      unit,
+      per100: p
+        ? {
+            kcal: Math.max(0, Number(p.kcal) || 0),
+            protein: Math.max(0, Number(p.protein) || 0),
+            carbs: Math.max(0, Number(p.carbs) || 0),
+            fat: Math.max(0, Number(p.fat) || 0),
+          }
+        : null,
       nutrition: {
         kcal: Math.max(0, Number(n.kcal) || 0),
         protein: Math.max(0, Number(n.protein) || 0),
@@ -190,17 +203,37 @@ export function createStore({ recipesById, config, storage = globalThis.localSto
       return meal.instanceId;
     },
 
-    /** Add a fixed/ready meal (e.g. coffee, snack) whose nutrition is fixed and never scaled. */
-    addFixedMeal({ name, kcal = 0, protein = 0, carbs = 0, fat = 0 }) {
+    /** Add a fixed/ready meal (e.g. coffee, snack) whose nutrition is calculated from amount and per-100 values. */
+    addFixedMeal({ name, amount = null, unit = null, per100 = null, kcal = 0, protein = 0, carbs = 0, fat = 0 }) {
       const meal = sanitizeMeal({
         instanceId: newId(),
         type: 'fixed',
         name,
+        amount,
+        unit,
+        per100,
         nutrition: { kcal, protein, carbs, fat },
       });
       day.meals.push(meal);
       commit();
       return meal.instanceId;
+    },
+
+    setFixedMealAmount(instanceId, newAmount) {
+      const meal = find(instanceId);
+      if (meal.type !== 'fixed') return;
+      const amt = Math.max(0, Number(newAmount) || 0);
+      meal.amount = amt;
+      if (meal.per100) {
+        const factor = amt / 100;
+        meal.nutrition = {
+          kcal: Math.round(meal.per100.kcal * factor),
+          protein: clean(meal.per100.protein * factor, 1),
+          carbs: clean(meal.per100.carbs * factor, 1),
+          fat: clean(meal.per100.fat * factor, 1),
+        };
+      }
+      commit();
     },
 
     removeMeal(instanceId) {

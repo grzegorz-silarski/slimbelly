@@ -123,6 +123,7 @@ async function main() {
   });
   const addFixedModal = createAddFixedMealModal($('#add-fixed-meal-modal'), {
     getKcalPerGram: () => store.getConfig().kcalPerGram,
+    getUnits: () => store.getConfig().fixedMealUnits || ['g', 'ml'],
     onAdd: (meal) => {
       const id = store.addFixedMeal(meal);
       render();

@@ -58,6 +58,11 @@ export function validateConfig(raw) {
     }
   }
 
+  const rawUnits = raw.fixedMealUnits ?? raw.units;
+  const fixedMealUnits = Array.isArray(rawUnits) && rawUnits.length > 0
+    ? rawUnits.map(String).map((s) => s.trim()).filter(Boolean)
+    : ['g', 'ml'];
+
   const planned = raw.plannedMealsPerDay ?? 4;
   if (!Number.isInteger(planned) || planned < 1) errors.push('config.json: plannedMealsPerDay must be an integer ≥ 1');
 
@@ -113,6 +118,7 @@ export function validateConfig(raw) {
       rawTargets,
       macroMode,
       kcalPerGram,
+      fixedMealUnits: fixedMealUnits.length > 0 ? fixedMealUnits : ['g', 'ml'],
       plannedMealsPerDay: planned,
       tolerance: { ...DEFAULT_TOLERANCE, ...(raw.tolerance || {}) },
       solver: {

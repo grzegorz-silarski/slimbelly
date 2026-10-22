@@ -114,35 +114,57 @@
             <input type="text" class="input w-full" placeholder="e.g. Coffee with milk, Protein bar" data-field="name" required aria-label="Meal name" />
           </fieldset>
 
-          <div class="grid grid-cols-2 gap-3">
-            <fieldset class="fieldset">
-              <legend class="fieldset-legend">Calories</legend>
-              <label class="input input-sm w-full">
-                <input type="number" inputmode="decimal" min="0" step="1" class="grow" value="0" data-field="kcal" required aria-label="Calories in kcal" />
-                <span class="opacity-60 text-xs">kcal</span>
-              </label>
-            </fieldset>
-            <fieldset class="fieldset">
-              <legend class="fieldset-legend">Protein</legend>
-              <label class="input input-sm w-full">
-                <input type="number" inputmode="decimal" min="0" step="0.5" class="grow" value="0" data-field="protein" required aria-label="Protein in grams" />
-                <span class="opacity-60 text-xs">g</span>
-              </label>
-            </fieldset>
-            <fieldset class="fieldset">
-              <legend class="fieldset-legend">Carbs</legend>
-              <label class="input input-sm w-full">
-                <input type="number" inputmode="decimal" min="0" step="0.5" class="grow" value="0" data-field="carbs" required aria-label="Carbs in grams" />
-                <span class="opacity-60 text-xs">g</span>
-              </label>
-            </fieldset>
-            <fieldset class="fieldset">
-              <legend class="fieldset-legend">Fat</legend>
-              <label class="input input-sm w-full">
-                <input type="number" inputmode="decimal" min="0" step="0.5" class="grow" value="0" data-field="fat" required aria-label="Fat in grams" />
-                <span class="opacity-60 text-xs">g</span>
-              </label>
-            </fieldset>
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Portion weight / volume</legend>
+            <div class="join w-full">
+              <input type="number" inputmode="decimal" min="0.1" step="any" class="input join-item grow" value="100" data-field="amount" required aria-label="Portion amount" />
+              <select class="select join-item w-28" data-field="unit" aria-label="Unit">
+                <option value="g">g</option>
+                <option value="ml">ml</option>
+              </select>
+            </div>
+          </fieldset>
+
+          <div class="space-y-1">
+            <div class="text-xs font-semibold opacity-80 uppercase tracking-wide">Nutrition per 100 <span data-role="unit-label">g</span></div>
+            <div class="grid grid-cols-2 gap-3">
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">Calories</legend>
+                <label class="input input-sm w-full">
+                  <input type="number" inputmode="decimal" min="0" step="1" class="grow" value="0" data-field="kcal" required aria-label="Calories in kcal per 100 units" />
+                  <span class="opacity-60 text-xs">kcal</span>
+                </label>
+              </fieldset>
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">Protein</legend>
+                <label class="input input-sm w-full">
+                  <input type="number" inputmode="decimal" min="0" step="0.1" class="grow" value="0" data-field="protein" required aria-label="Protein in grams per 100 units" />
+                  <span class="opacity-60 text-xs">g</span>
+                </label>
+              </fieldset>
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">Carbs</legend>
+                <label class="input input-sm w-full">
+                  <input type="number" inputmode="decimal" min="0" step="0.1" class="grow" value="0" data-field="carbs" required aria-label="Carbs in grams per 100 units" />
+                  <span class="opacity-60 text-xs">g</span>
+                </label>
+              </fieldset>
+              <fieldset class="fieldset">
+                <legend class="fieldset-legend">Fat</legend>
+                <label class="input input-sm w-full">
+                  <input type="number" inputmode="decimal" min="0" step="0.1" class="grow" value="0" data-field="fat" required aria-label="Fat in grams per 100 units" />
+                  <span class="opacity-60 text-xs">g</span>
+                </label>
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="bg-base-200/70 border border-base-300 rounded-lg p-3 text-sm flex flex-col gap-1">
+            <div class="flex items-center justify-between font-medium">
+              <span>Total for <b data-role="calc-amount">100</b> <span data-role="calc-unit">g</span>:</span>
+              <span class="text-primary font-bold"><span data-role="total-kcal">0</span> kcal</span>
+            </div>
+            <div class="text-xs opacity-75" data-role="total-macros">P 0 g · C 0 g · F 0 g</div>
           </div>
 
           <p data-role="hint" class="text-xs opacity-60"></p>

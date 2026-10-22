@@ -104,19 +104,38 @@ test('addFixedMeal persists fixed meal and keeps its nutrition unchanged on reor
   const storage = memoryStorage();
   const s = createStore({ recipesById, config, storage });
   s.addMeal('oatmeal-whey');
-  const fid = s.addFixedMeal({ name: 'Coffee with milk', kcal: 80, protein: 4, carbs: 6, fat: 4 });
+  const fid = s.addFixedMeal({
+    name: 'Coffee with milk',
+    amount: 250,
+    unit: 'ml',
+    per100: { kcal: 48, protein: 3.2, carbs: 4.8, fat: 2 },
+    kcal: 120,
+    protein: 8,
+    carbs: 12,
+    fat: 5,
+  });
   assert.equal(s.getPlan().meals[1].fixed, true);
-  assert.equal(s.getPlan().meals[1].solution.totals.kcal, 80);
+  assert.equal(s.getPlan().meals[1].solution.totals.kcal, 120);
+  assert.equal(s.getDay().meals[1].amount, 250);
+  assert.equal(s.getDay().meals[1].unit, 'ml');
+
+  // Updating portion amount recalculates nutrition from per100
+  s.setFixedMealAmount(fid, 500);
+  assert.equal(s.getDay().meals[1].amount, 500);
+  assert.equal(s.getPlan().meals[1].solution.totals.kcal, 240);
+  assert.equal(s.getPlan().meals[1].solution.totals.protein, 16);
 
   s.moveMeal(1, 0);
   assert.equal(s.getPlan().meals[0].meal.instanceId, fid);
-  assert.equal(s.getPlan().meals[0].solution.totals.kcal, 80);
+  assert.equal(s.getPlan().meals[0].solution.totals.kcal, 240);
 
   // Reload from storage
   const s2 = createStore({ recipesById, config, storage });
   assert.equal(s2.getPlan().meals[0].fixed, true);
   assert.equal(s2.getPlan().meals[0].recipe.name, 'Coffee with milk');
-  assert.equal(s2.getPlan().meals[0].solution.totals.kcal, 80);
+  assert.equal(s2.getPlan().meals[0].meal.amount, 500);
+  assert.equal(s2.getPlan().meals[0].meal.unit, 'ml');
+  assert.equal(s2.getPlan().meals[0].solution.totals.kcal, 240);
 });
 
 

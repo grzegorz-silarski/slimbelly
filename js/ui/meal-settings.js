@@ -48,6 +48,19 @@ export function createMealSettingsModal(dialog, { store, onRemoved }) {
         </fieldset>
 
         ${
+          isFixed && meal.amount != null && meal.unit
+            ? `
+        <fieldset class="fieldset">
+          <legend class="fieldset-legend">Portion amount (${escapeHtml(meal.unit)})</legend>
+          <label class="input w-36">
+            <input type="number" min="0" step="any" class="grow" value="${fmtAmount(meal.amount)}" data-act="fixed-amount" />
+            <span class="opacity-60 text-xs">${escapeHtml(meal.unit)}</span>
+          </label>
+        </fieldset>`
+            : ''
+        }
+
+        ${
           isFixed
             ? ''
             : `
@@ -113,6 +126,9 @@ export function createMealSettingsModal(dialog, { store, onRemoved }) {
         break;
       case 'lock':
         store.setLocked(currentId, el.checked);
+        break;
+      case 'fixed-amount':
+        store.setFixedMealAmount(currentId, el.value);
         break;
     }
   });

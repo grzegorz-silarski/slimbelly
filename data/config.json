@@ -11,6 +11,10 @@
     "carbs": 4,
     "fat": 9
   },
+  "fixedMealUnits": [
+    "g",
+    "ml"
+  ],
   "plannedMealsPerDay": 4,
   "tolerance": { "kcal": 3, "protein": 5, "carbs": 5, "fat": 5 },
   "solver": {
