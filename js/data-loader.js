@@ -32,9 +32,18 @@ export async function loadData(base = 'data') {
 
   let files = [];
   try {
-    const index = await fetchJson(`${base}/recipes/index.json`);
-    if (!Array.isArray(index.recipes)) throw new Error('recipes/index.json: "recipes" must be an array of file names');
-    files = index.recipes;
+    const res = await fetch(`${base}/recipes/index.json`, { cache: 'no-cache' });
+    if (res.status !== 404) {
+      if (!res.ok) throw new Error(`${base}/recipes/index.json: HTTP ${res.status}`);
+      let index;
+      try {
+        index = await res.json();
+      } catch (e) {
+        throw new Error(`${base}/recipes/index.json: invalid JSON (${e.message})`);
+      }
+      if (!Array.isArray(index.recipes)) throw new Error('recipes/index.json: "recipes" must be an array of file names');
+      files = index.recipes;
+    }
   } catch (e) {
     errors.push(e.message);
   }

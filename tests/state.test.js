@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createStore, KEY_PREFIX } from '../js/state.js';
 import { validateConfig } from '../js/validation.js';
 
-const read = (p) => JSON.parse(readFileSync(new URL(`../data/${p}`, import.meta.url)));
+const read = (p) => JSON.parse(readFileSync(new URL(`./data/${p}`, import.meta.url)));
 const { config } = validateConfig(read('config.json'));
 const recipesById = new Map(read('recipes/index.json').recipes.map((f) => read(`recipes/${f}`)).map((r) => [r.id, r]));
 

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { planDay, toleranceStatus } from '../js/planner.js';
 import { validateConfig, validateRecipe } from '../js/validation.js';
 
-const read = (p) => JSON.parse(readFileSync(new URL(`../data/${p}`, import.meta.url)));
+const read = (p) => JSON.parse(readFileSync(new URL(`./data/${p}`, import.meta.url)));
 const { config } = validateConfig(read('config.json'));
 const index = read('recipes/index.json');
 const recipesById = new Map(index.recipes.map((f) => read(`recipes/${f}`)).map((r) => [r.id, r]));
@@ -88,14 +88,23 @@ test('toleranceStatus', () => {
   assert.equal(toleranceStatus(Infinity, 3), 'bad');
 });
 
-test('all bundled recipes and config validate cleanly', () => {
-  const cfgRes = validateConfig(read('config.json'));
-  assert.deepEqual(cfgRes.errors, []);
-  assert.deepEqual(cfgRes.warnings, []);
+test('all test recipes and app config validate cleanly', () => {
+  const testCfgRes = validateConfig(read('config.json'));
+  assert.deepEqual(testCfgRes.errors, []);
+  assert.deepEqual(testCfgRes.warnings, []);
+  const appCfgRes = validateConfig(JSON.parse(readFileSync(new URL('../data/config.json', import.meta.url))));
+  assert.deepEqual(appCfgRes.errors, []);
+  assert.deepEqual(appCfgRes.warnings, []);
   for (const file of index.recipes) {
     const res = validateRecipe(read(`recipes/${file}`), file);
     assert.deepEqual(res.errors, [], `${file} errors`);
     assert.deepEqual(res.warnings, [], `${file} warnings`);
+  }
+  const appIndex = JSON.parse(readFileSync(new URL('../data/recipes/index.json', import.meta.url)));
+  for (const file of appIndex.recipes) {
+    const res = validateRecipe(JSON.parse(readFileSync(new URL(`../data/recipes/${file}`, import.meta.url))), file);
+    assert.deepEqual(res.errors, [], `app ${file} errors`);
+    assert.deepEqual(res.warnings, [], `app ${file} warnings`);
   }
 });
 

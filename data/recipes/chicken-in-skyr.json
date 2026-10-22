@@ -1,0 +1,80 @@
+{
+    "id": "chicken-in-skyr",
+    "name": "Chicken in SKYR",
+    "tags": ["lunch"],
+    "ingredients": [
+        {
+            "id": "chicken-breast-strips",
+            "name": "Chicken breast strips",
+            "unit": "g",
+            "amount": 400,
+            "per": 100,
+            "kcal": 115,
+            "protein": 22.5,
+            "carbs": 0,
+            "fat": 2.6,
+            "adjust": { "min": 150, "max": 600, "step": 25 }
+        },
+        {
+            "id": "skyr-natural",
+            "name": "SKYR natural",
+            "unit": "ml",
+            "amount": 150,
+            "per": 100,
+            "kcal": 63,
+            "protein": 11,
+            "carbs": 4,
+            "fat": 0.2,
+            "adjust": { "min": 50, "max": 300, "step": 25 }
+        },
+        {
+            "id": "peanut-butter",
+            "name": "Peanut butter",
+            "unit": "spoon",
+            "amount": 1,
+            "per": 1,
+            "kcal": 90,
+            "protein": 3.8,
+            "carbs": 3,
+            "fat": 7.5,
+            "adjust": { "min": 0.5, "max": 3, "step": 0.5 }
+        },
+        {
+            "id": "honey",
+            "name": "Honey",
+            "unit": "spoon",
+            "amount": 1,
+            "per": 1,
+            "kcal": 64,
+            "protein": 0.1,
+            "carbs": 17,
+            "fat": 0,
+            "adjust": { "min": 0, "max": 3, "step": 0.5 }
+        },
+        {
+            "id": "chilli-paste",
+            "name": "Chilli paste",
+            "unit": "spoon",
+            "amount": 1,
+            "per": 1,
+            "kcal": 15,
+            "protein": 0.3,
+            "carbs": 3,
+            "fat": 0.2,
+            "adjust": false
+        },
+        {
+            "id": "herbs",
+            "name": "Herbs",
+            "unit": "g",
+            "amount": 3,
+            "per": 100,
+            "kcal": 0,
+            "protein": 0,
+            "carbs": 0,
+            "fat": 0,
+            "adjust": false
+        }
+    ]
+}
+

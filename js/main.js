@@ -137,7 +137,7 @@ async function main() {
     if (!el || listEl.contains(el)) return;
     switch (el.dataset.action) {
       case 'open-add':
-        if (!recipes.length) return toast('No recipes loaded – check data/recipes/index.json', 'error');
+        if (!recipes.length) return toast('No recipes loaded – see data/recipes/README.md to add recipes', 'info');
         addModal.open();
         break;
       case 'open-add-fixed':

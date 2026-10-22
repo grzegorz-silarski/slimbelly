@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { solveMeal } from '../js/solver.js';
 
-const load = (name) => JSON.parse(readFileSync(new URL(`../data/recipes/${name}.json`, import.meta.url)));
+const load = (name) => JSON.parse(readFileSync(new URL(`./data/recipes/${name}.json`, import.meta.url)));
 const bowl = load('chicken-rice-bowl');
 const oatmeal = load('oatmeal-whey');
 

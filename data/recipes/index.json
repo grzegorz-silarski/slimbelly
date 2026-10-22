@@ -1,11 +1,6 @@
 {
-  "recipes": [
-    "oatmeal-whey.json",
-    "scrambled-eggs-toast.json",
-    "chicken-rice-bowl.json",
-    "salmon-potatoes.json",
-    "greek-yogurt-bowl.json",
-    "beef-pasta.json"
-  ]
+    "recipes": [
+        "chicken-in-skyr.json"
+    ]
 }
 
