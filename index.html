@@ -29,8 +29,11 @@
           <p id="today-label" class="text-xs opacity-70 truncate">Today</p>
         </div>
       </div>
-      <div class="flex-none flex items-center gap-1">
+      <div class="flex-none flex items-center gap-1.5">
         <button type="button" class="btn btn-primary btn-sm hidden lg:inline-flex" data-action="open-add">
+          <span data-icon="plus"></span> Prepare meal
+        </button>
+        <button type="button" class="btn btn-secondary btn-outline btn-sm hidden lg:inline-flex" data-action="open-add-fixed">
           <span data-icon="plus"></span> Add meal
         </button>
         <div class="dropdown dropdown-end">
@@ -60,24 +63,31 @@
             <div class="card-body items-center text-center">
               <span class="text-4xl" aria-hidden="true">🍽️</span>
               <h3 class="card-title">No meals yet</h3>
-              <p class="opacity-70 text-sm">Add your first meal – amounts are scaled automatically to fit your daily target.</p>
-              <button type="button" class="btn btn-primary mt-2" data-action="open-add"><span data-icon="plus"></span> Add meal</button>
+              <p class="opacity-70 text-sm">Prepare a meal from a recipe (auto-scaled to your target) or add a fixed/ready meal.</p>
+              <div class="flex flex-wrap justify-center gap-2 mt-2">
+                <button type="button" class="btn btn-primary" data-action="open-add"><span data-icon="plus"></span> Prepare meal</button>
+                <button type="button" class="btn btn-secondary btn-outline" data-action="open-add-fixed"><span data-icon="plus"></span> Add meal</button>
+              </div>
             </div>
           </div>
         </div>
       </section>
     </main>
 
-    <!-- Floating add button (mobile) -->
-    <button type="button" class="btn btn-primary btn-circle btn-lg shadow-lg fixed bottom-5 right-5 z-30 lg:hidden fab-safe"
-            data-action="open-add" aria-label="Add meal"><span data-icon="plus"></span></button>
+    <!-- Floating action buttons (mobile) -->
+    <div class="fixed bottom-5 right-4 z-30 flex items-center gap-2 lg:hidden fab-safe">
+      <button type="button" class="btn btn-secondary shadow-lg rounded-full"
+              data-action="open-add-fixed" aria-label="Add fixed meal"><span data-icon="plus"></span> Add meal</button>
+      <button type="button" class="btn btn-primary shadow-lg rounded-full"
+              data-action="open-add" aria-label="Prepare meal"><span data-icon="plus"></span> Prepare meal</button>
+    </div>
 
-    <!-- Add meal modal -->
+    <!-- Prepare meal modal (recipe picker) -->
     <dialog id="add-meal-modal" class="modal modal-bottom sm:modal-middle" aria-labelledby="add-meal-title">
       <div class="modal-box max-h-[85vh] flex flex-col p-0">
         <div class="p-4 pb-2 border-b border-base-300 space-y-2">
           <div class="flex items-center justify-between">
-            <h3 id="add-meal-title" class="font-bold text-lg">Add a meal</h3>
+            <h3 id="add-meal-title" class="font-bold text-lg">Prepare a meal</h3>
             <form method="dialog"><button class="btn btn-ghost btn-sm btn-square" aria-label="Close" data-icon="x"></button></form>
           </div>
           <label class="input w-full">
@@ -87,6 +97,60 @@
           <div class="flex flex-wrap gap-1" data-role="tags"></div>
         </div>
         <ul class="overflow-y-auto p-2 flex-1" data-role="list"></ul>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Add fixed/ready meal modal -->
+    <dialog id="add-fixed-meal-modal" class="modal modal-bottom sm:modal-middle" aria-labelledby="add-fixed-meal-title">
+      <div class="modal-box">
+        <div class="flex items-center justify-between mb-3">
+          <h3 id="add-fixed-meal-title" class="font-bold text-lg">Add fixed meal</h3>
+          <form method="dialog"><button class="btn btn-ghost btn-sm btn-square" aria-label="Close" data-icon="x"></button></form>
+        </div>
+        <form data-role="form" class="flex flex-col gap-4">
+          <fieldset class="fieldset">
+            <legend class="fieldset-legend">Meal name</legend>
+            <input type="text" class="input w-full" placeholder="e.g. Coffee with milk, Protein bar" data-field="name" required aria-label="Meal name" />
+          </fieldset>
+
+          <div class="grid grid-cols-2 gap-3">
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Calories</legend>
+              <label class="input input-sm w-full">
+                <input type="number" inputmode="decimal" min="0" step="1" class="grow" value="0" data-field="kcal" required aria-label="Calories in kcal" />
+                <span class="opacity-60 text-xs">kcal</span>
+              </label>
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Protein</legend>
+              <label class="input input-sm w-full">
+                <input type="number" inputmode="decimal" min="0" step="0.5" class="grow" value="0" data-field="protein" required aria-label="Protein in grams" />
+                <span class="opacity-60 text-xs">g</span>
+              </label>
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Carbs</legend>
+              <label class="input input-sm w-full">
+                <input type="number" inputmode="decimal" min="0" step="0.5" class="grow" value="0" data-field="carbs" required aria-label="Carbs in grams" />
+                <span class="opacity-60 text-xs">g</span>
+              </label>
+            </fieldset>
+            <fieldset class="fieldset">
+              <legend class="fieldset-legend">Fat</legend>
+              <label class="input input-sm w-full">
+                <input type="number" inputmode="decimal" min="0" step="0.5" class="grow" value="0" data-field="fat" required aria-label="Fat in grams" />
+                <span class="opacity-60 text-xs">g</span>
+              </label>
+            </fieldset>
+          </div>
+
+          <p data-role="hint" class="text-xs opacity-60"></p>
+
+          <div class="flex justify-end gap-2 pt-2 border-t border-base-300">
+            <button type="submit" class="btn btn-primary btn-sm">Add meal</button>
+          </div>
+        </form>
       </div>
       <form method="dialog" class="modal-backdrop"><button>close</button></form>
     </dialog>

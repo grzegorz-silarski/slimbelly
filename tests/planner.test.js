@@ -46,7 +46,8 @@ test('override in meal k leaves earlier meals unchanged and recalculates later o
 
   assert.deepEqual(amountsOf(after.meals[0]), amountsOf(before.meals[0]));
   assert.notDeepEqual(amountsOf(after.meals[2]), amountsOf(before.meals[2]));
-  assert.ok(after.meals[3].target.kcal < before.meals[3].target.kcal);
+  assert.ok(after.meals[2].target.kcal < before.meals[2].target.kcal);
+  assert.ok(after.meals[3].target.carbs < before.meals[3].target.carbs);
 });
 
 test('reordering changes the result', () => {
@@ -122,5 +123,30 @@ test('percentage macroMode converts config targets to grams for planning', () =>
   assert.equal(strCfg.targets.carbs, 250);
   assert.equal(strCfg.targets.fat, 50); // 400 kcal / 8 kcal/g = 50 g
 });
+
+test('fixed meals never scale and only prepared meals after them recalculate when reordered', () => {
+  const coffee = {
+    instanceId: 'f_coffee',
+    type: 'fixed',
+    name: 'Latte',
+    nutrition: { kcal: 200, protein: 10, carbs: 16, fat: 10 },
+  };
+  const prep1 = { instanceId: 'm1', type: 'prepared', recipeId: 'oatmeal-whey', weight: 1, locked: false, overrides: {} };
+  const prep2 = { instanceId: 'm2', type: 'prepared', recipeId: 'chicken-rice-bowl', weight: 1, locked: false, overrides: {} };
+
+  // Order A: prep1 -> coffee (fixed) -> prep2
+  const planA = planDay({ meals: [prep1, coffee, prep2] }, recipesById, config);
+  assert.equal(planA.meals[1].fixed, true);
+  assert.deepEqual(planA.meals[1].solution.totals, coffee.nutrition);
+
+  // Order B: coffee (fixed) -> prep1 -> prep2
+  const planB = planDay({ meals: [coffee, prep1, prep2] }, recipesById, config);
+  assert.equal(planB.meals[0].fixed, true);
+  assert.deepEqual(planB.meals[0].solution.totals, coffee.nutrition);
+
+  // prep1 was before coffee in A, and is after coffee in B -> prep1's target decreases in B
+  assert.ok(planB.meals[1].target.kcal < planA.meals[0].target.kcal);
+});
+
 
 

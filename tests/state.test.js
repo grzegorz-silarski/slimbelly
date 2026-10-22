@@ -95,4 +95,24 @@ test('setTargets in percentage mode stores percentage and exposes gram targets f
   assert.equal(s.getPlan().targets.protein, config.targets.protein);
 });
 
+test('addFixedMeal persists fixed meal and keeps its nutrition unchanged on reorder', () => {
+  const storage = memoryStorage();
+  const s = createStore({ recipesById, config, storage });
+  s.addMeal('oatmeal-whey');
+  const fid = s.addFixedMeal({ name: 'Coffee with milk', kcal: 80, protein: 4, carbs: 6, fat: 4 });
+  assert.equal(s.getPlan().meals[1].fixed, true);
+  assert.equal(s.getPlan().meals[1].solution.totals.kcal, 80);
+
+  s.moveMeal(1, 0);
+  assert.equal(s.getPlan().meals[0].meal.instanceId, fid);
+  assert.equal(s.getPlan().meals[0].solution.totals.kcal, 80);
+
+  // Reload from storage
+  const s2 = createStore({ recipesById, config, storage });
+  assert.equal(s2.getPlan().meals[0].fixed, true);
+  assert.equal(s2.getPlan().meals[0].recipe.name, 'Coffee with milk');
+  assert.equal(s2.getPlan().meals[0].solution.totals.kcal, 80);
+});
+
+
 

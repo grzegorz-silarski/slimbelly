@@ -36,21 +36,41 @@ function sanitizeTargetOverride(raw, kcalPerGram) {
   return { macroMode, rawTargets: rt, targets };
 }
 
+function sanitizeMeal(m) {
+  if (!m || typeof m !== 'object') return null;
+  const instanceId = typeof m.instanceId === 'string' ? m.instanceId : newId();
+  if (m.type === 'fixed') {
+    const n = m.nutrition || {};
+    return {
+      instanceId,
+      type: 'fixed',
+      name: typeof m.name === 'string' && m.name.trim() ? m.name.trim() : 'Fixed meal',
+      nutrition: {
+        kcal: Math.max(0, Number(n.kcal) || 0),
+        protein: Math.max(0, Number(n.protein) || 0),
+        carbs: Math.max(0, Number(n.carbs) || 0),
+        fat: Math.max(0, Number(n.fat) || 0),
+      },
+    };
+  }
+  if (typeof m.recipeId !== 'string') return null;
+  return {
+    instanceId,
+    type: 'prepared',
+    recipeId: m.recipeId,
+    weight: Number(m.weight) > 0 ? Number(m.weight) : 1,
+    locked: !!m.locked,
+    frozenAmounts: m.frozenAmounts && typeof m.frozenAmounts === 'object' ? m.frozenAmounts : null,
+    overrides: m.overrides && typeof m.overrides === 'object' ? m.overrides : {},
+  };
+}
+
 function sanitizeDay(raw, date, kcalPerGram) {
   if (!raw || !Array.isArray(raw.meals)) return emptyDay(date);
   return {
     date,
     targetOverride: sanitizeTargetOverride(raw.targetOverride, kcalPerGram),
-    meals: raw.meals
-      .filter((m) => m && typeof m.recipeId === 'string')
-      .map((m) => ({
-        instanceId: typeof m.instanceId === 'string' ? m.instanceId : newId(),
-        recipeId: m.recipeId,
-        weight: Number(m.weight) > 0 ? Number(m.weight) : 1,
-        locked: !!m.locked,
-        frozenAmounts: m.frozenAmounts && typeof m.frozenAmounts === 'object' ? m.frozenAmounts : null,
-        overrides: m.overrides && typeof m.overrides === 'object' ? m.overrides : {},
-      })),
+    meals: raw.meals.map(sanitizeMeal).filter(Boolean),
   };
 }
 
@@ -145,7 +165,28 @@ export function createStore({ recipesById, config, storage = globalThis.localSto
     },
 
     addMeal(recipeId) {
-      const meal = { instanceId: newId(), recipeId, weight: 1, locked: false, frozenAmounts: null, overrides: {} };
+      const meal = {
+        instanceId: newId(),
+        type: 'prepared',
+        recipeId,
+        weight: 1,
+        locked: false,
+        frozenAmounts: null,
+        overrides: {},
+      };
+      day.meals.push(meal);
+      commit();
+      return meal.instanceId;
+    },
+
+    /** Add a fixed/ready meal (e.g. coffee, snack) whose nutrition is fixed and never scaled. */
+    addFixedMeal({ name, kcal = 0, protein = 0, carbs = 0, fat = 0 }) {
+      const meal = sanitizeMeal({
+        instanceId: newId(),
+        type: 'fixed',
+        name,
+        nutrition: { kcal, protein, carbs, fat },
+      });
       day.meals.push(meal);
       commit();
       return meal.instanceId;
@@ -229,6 +270,7 @@ function summarizePlan(plan) {
       .filter((m) => !m.missing)
       .map((m) => ({
         position: m.position,
+        type: m.fixed ? 'fixed' : 'prepared',
         recipe: m.recipe.name,
         totals: m.solution.totals,
         ingredients: m.solution.items.map((it) => ({

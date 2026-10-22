@@ -13,36 +13,58 @@
 import { zero, add, sub, clampMin0, deviationPercent, NUTRIENTS } from './nutrition.js';
 import { solveMeal } from './solver.js';
 
+export function isFixedMeal(meal) {
+  return meal?.type === 'fixed';
+}
+
 export function mealWeight(meal) {
   const w = Number(meal.weight);
   return Number.isFinite(w) && w > 0 ? w : 1;
 }
 
 /**
- * @param {{meals: Array<{instanceId: string, recipeId: string, weight?: number, locked?: boolean, frozenAmounts?: object, overrides?: object}>}} day
+ * @param {{meals: Array<object>}} day
  * @param {Map<string, object>} recipesById
  * @param {object} config  normalised config (targets in grams)
  */
 export function planDay(day, recipesById, config) {
   const targets = { ...zero(), ...config.targets };
   const meals = day.meals || [];
-  const present = meals.map((m) => recipesById.has(m.recipeId));
-  const n = present.filter(Boolean).length;
+  const present = meals.map((m) => (isFixedMeal(m) ? true : recipesById.has(m.recipeId)));
+  const scalable = meals.map((m, i) => present[i] && !isFixedMeal(m));
+  const preparedCount = scalable.filter(Boolean).length;
   const planned = Math.max(1, Math.floor(config.plannedMealsPerDay || 1));
-  const emptySlots = Math.max(planned, n) - n;
+  const emptySlots = Math.max(planned, preparedCount) - preparedCount;
 
-  // suffix sums of weights (only meals whose recipe exists)
+  // suffix sums of weights (only scalable prepared meals absorb remaining budget)
   const suffix = new Array(meals.length + 1).fill(0);
   for (let i = meals.length - 1; i >= 0; i--) {
-    suffix[i] = suffix[i + 1] + (present[i] ? mealWeight(meals[i]) : 0);
+    suffix[i] = suffix[i + 1] + (scalable[i] ? mealWeight(meals[i]) : 0);
   }
 
   let consumed = zero();
   let position = 0;
   const results = meals.map((meal, i) => {
+    if (isFixedMeal(meal)) {
+      position += 1;
+      const totals = { ...zero(), ...(meal.nutrition || {}) };
+      consumed = add(consumed, totals);
+      return {
+        meal,
+        fixed: true,
+        recipe: { id: meal.instanceId, name: meal.name || 'Fixed meal', ingredients: [] },
+        missing: false,
+        position,
+        share: 0,
+        target: totals,
+        solution: { items: [], totals, target: totals, hitBounds: [], scaleFactor: 1 },
+        deviation: zero(),
+      };
+    }
+
     const recipe = recipesById.get(meal.recipeId);
     if (!recipe) {
-      return { meal, recipe: null, missing: true, position: null };
+      return { meal, fixed: false, recipe: null, missing: true, position: null };
     }
     position += 1;
 
@@ -60,6 +82,7 @@ export function planDay(day, recipesById, config) {
 
     return {
       meal,
+      fixed: false,
       recipe,
       missing: false,
       position,

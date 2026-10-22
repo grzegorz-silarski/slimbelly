@@ -21,8 +21,9 @@ export function createMealSettingsModal(dialog, { store, onRemoved }) {
       return;
     }
     const meal = day.meals[index];
+    const isFixed = meal.type === 'fixed';
     const mp = store.getPlan().meals.find((m) => m.meal.instanceId === currentId);
-    const name = mp?.recipe?.name ?? meal.recipeId;
+    const name = mp?.recipe?.name ?? meal.name ?? meal.recipeId;
     const overrideCount = Object.keys(meal.overrides || {}).length;
     titleEl.textContent = name;
 
@@ -39,9 +40,17 @@ export function createMealSettingsModal(dialog, { store, onRemoved }) {
             <select class="select join-item w-24" data-act="position" aria-label="Position">${options}</select>
             <button type="button" class="btn join-item" data-act="down" ${index === day.meals.length - 1 ? 'disabled' : ''} aria-label="Move later">${icons.chevronDown('size-4')}</button>
           </div>
-          <p class="label whitespace-normal">Meals are calculated in this order. Changing it recalculates all meals after the new position.</p>
+          <p class="label whitespace-normal">${
+            isFixed
+              ? 'This is a fixed meal – its nutrition never changes, and prepared meals after it recalculate to fit your daily target.'
+              : 'Meals are calculated in this order. Changing it recalculates all prepared meals after the new position.'
+          }</p>
         </fieldset>
 
+        ${
+          isFixed
+            ? ''
+            : `
         <fieldset class="fieldset">
           <legend class="fieldset-legend">Share weight</legend>
           <input type="number" class="input w-32" min="0.25" step="0.25" value="${fmtAmount(meal.weight || 1)}" data-act="weight" aria-label="Share weight" />
@@ -54,12 +63,17 @@ export function createMealSettingsModal(dialog, { store, onRemoved }) {
             <input type="checkbox" class="toggle toggle-warning" data-act="lock" ${meal.locked ? 'checked' : ''} />
             Freeze current amounts (not re-optimised)
           </label>
-        </fieldset>
+        </fieldset>`
+        }
 
         <div class="flex flex-wrap gap-2 pt-2 border-t border-base-300">
-          <button type="button" class="btn btn-outline btn-sm" data-act="reset" ${overrideCount ? '' : 'disabled'}>
+          ${
+            isFixed
+              ? ''
+              : `<button type="button" class="btn btn-outline btn-sm" data-act="reset" ${overrideCount ? '' : 'disabled'}>
             ${icons.reset('size-4')} Reset ${overrideCount || ''} override${overrideCount === 1 ? '' : 's'}
-          </button>
+          </button>`
+          }
           <button type="button" class="btn btn-error btn-outline btn-sm ml-auto" data-act="remove">
             ${icons.trash('size-4')} Remove meal
           </button>

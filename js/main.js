@@ -6,6 +6,7 @@ import { initDragAndDrop } from './dnd.js';
 import { renderSummary, renderSummaryBar } from './ui/summary.js';
 import { renderMealList, bindMealListEvents } from './ui/meal-list.js';
 import { createAddMealModal } from './ui/add-meal-modal.js';
+import { createAddFixedMealModal } from './ui/add-fixed-meal-modal.js';
 import { createMealSettingsModal } from './ui/meal-settings.js';
 import { createTargetModal } from './ui/target-modal.js';
 import { toast } from './ui/toast.js';
@@ -108,7 +109,18 @@ async function main() {
       const id = store.addMeal(recipeId);
       expanded.add(id);
       render();
-      toast(`Added ${recipesById.get(recipeId).name}`, 'success');
+      toast(`Prepared ${recipesById.get(recipeId).name}`, 'success');
+      requestAnimationFrame(() =>
+        listEl.querySelector(`[data-id="${CSS.escape(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      );
+    },
+  });
+  const addFixedModal = createAddFixedMealModal($('#add-fixed-meal-modal'), {
+    getKcalPerGram: () => store.getConfig().kcalPerGram,
+    onAdd: (meal) => {
+      const id = store.addFixedMeal(meal);
+      render();
+      toast(`Added ${meal.name}`, 'success');
       requestAnimationFrame(() =>
         listEl.querySelector(`[data-id="${CSS.escape(id)}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       );
@@ -127,6 +139,9 @@ async function main() {
       case 'open-add':
         if (!recipes.length) return toast('No recipes loaded – check data/recipes/index.json', 'error');
         addModal.open();
+        break;
+      case 'open-add-fixed':
+        addFixedModal.open();
         break;
       case 'open-target':
         document.activeElement?.blur();

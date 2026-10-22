@@ -25,7 +25,7 @@ export function renderMealList(container, plan, ctx) {
       node.className = 'meal-item';
       node.dataset.id = id;
     }
-    const html = mp.missing ? missingCard(mp) : mealCard(mp, ctx);
+    const html = mp.missing ? missingCard(mp) : mp.fixed ? fixedMealCard(mp) : mealCard(mp, ctx);
     if (node._html !== html) {
       node.innerHTML = html;
       node._html = html;
@@ -47,6 +47,30 @@ function missingCard(mp) {
       <span>Recipe <code>${escapeHtml(mp.meal.recipeId)}</code> is no longer available.</span>
       <button class="btn btn-sm" data-action="remove" data-id="${escapeHtml(mp.meal.instanceId)}">Remove</button>
     </div>`;
+}
+
+function fixedMealCard(mp) {
+  const { meal, recipe, solution, position } = mp;
+  const id = escapeHtml(meal.instanceId);
+  return `
+    <article class="card bg-base-100 shadow-sm border border-base-300" aria-label="Meal ${position}: ${escapeHtml(recipe.name)} (Fixed)">
+      <div class="card-body p-3 sm:p-4 gap-2">
+        <div class="flex items-start gap-2">
+          <button type="button" class="drag-handle btn btn-ghost btn-sm btn-square cursor-grab active:cursor-grabbing touch-none" aria-label="Drag to reorder" title="Drag to reorder">${icons.grip()}</button>
+          <div class="badge badge-primary font-bold mt-1 shrink-0" title="Meal order">${position}</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-semibold leading-tight">${escapeHtml(recipe.name)}</h3>
+              <span class="badge badge-neutral badge-sm gap-1">${icons.lock('size-3')}Fixed</span>
+            </div>
+            <div class="text-sm"><b>${fmtKcal(solution.totals.kcal)} kcal</b> <span class="opacity-70">· ${macroLine(solution.totals)}</span></div>
+            <div class="text-xs opacity-60">Fixed nutrition · not scaled</div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm btn-square" data-action="settings" data-id="${id}" aria-label="Meal settings" title="Meal settings">${icons.cog()}</button>
+          <button type="button" class="btn btn-ghost btn-sm btn-square text-error" data-action="remove" data-id="${id}" aria-label="Remove meal" title="Remove meal">${icons.trash('size-4')}</button>
+        </div>
+      </div>
+    </article>`;
 }
 
 function mealCard(mp, ctx) {

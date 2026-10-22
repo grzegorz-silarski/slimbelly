@@ -19,7 +19,8 @@ export function renderSummary(el, plan, config) {
   const { totals, targets, remaining } = plan;
   const kcalPct = pct(totals.kcal, targets.kcal);
   const kcalStatus = statusFor(plan, config, 'kcal');
-  const mealCount = plan.meals.filter((m) => !m.missing).length;
+  const preparedCount = plan.meals.filter((m) => !m.missing && !m.fixed).length;
+  const fixedCount = plan.meals.filter((m) => m.fixed).length;
 
   const macroRows = MACROS.map(({ key, label }) => {
     const status = statusFor(plan, config, key);
@@ -68,7 +69,7 @@ export function renderSummary(el, plan, config) {
             <div>${remaining.kcal >= 0
               ? `<b>${fmtKcal(remaining.kcal)}</b> kcal left`
               : `<b class="text-error">${fmtKcal(-remaining.kcal)}</b> kcal over`}</div>
-            <div class="opacity-70">${mealCount} of ${Math.max(plan.plannedMealsPerDay, mealCount)} meals</div>
+            <div class="opacity-70">${preparedCount} of ${Math.max(plan.plannedMealsPerDay, preparedCount)} prepared${fixedCount ? ` · ${fixedCount} fixed` : ''}</div>
             ${plan.emptySlots === 0
               ? `<div class="${STATUS_CLASS.text[kcalStatus]} font-medium">${fmtPct(plan.deviation.kcal)} vs target</div>`
               : `<div class="opacity-70">${plan.emptySlots} slot${plan.emptySlots > 1 ? 's' : ''} still open</div>`}
