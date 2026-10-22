@@ -1,0 +1,42 @@
+/* Small custom styles on top of Tailwind + daisyUI. */
+
+/* SortableJS states */
+.sortable-ghost {
+  opacity: 0.35;
+}
+.sortable-ghost .card {
+  border-style: dashed;
+}
+.sortable-chosen .card {
+  box-shadow: 0 10px 25px -10px rgb(0 0 0 / 0.35);
+}
+
+/* Drag handle must not scroll the page on touch devices */
+.drag-handle {
+  touch-action: none;
+}
+
+/* Keep the floating button above the iOS home indicator */
+.fab-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+/* Hide number spinners on touch devices (keyboard is used instead) */
+@media (pointer: coarse) {
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}
+
+/* Avoid flash of unstyled content before Tailwind browser build runs */
+[data-icon]:empty {
+  display: inline-block;
+  min-width: 1.25rem;
+}
+

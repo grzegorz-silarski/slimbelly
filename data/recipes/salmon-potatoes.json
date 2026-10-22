@@ -1,0 +1,32 @@
+{
+  "id": "salmon-potatoes",
+  "name": "Salmon with Potatoes & Green Beans",
+  "tags": ["lunch", "dinner"],
+  "ingredients": [
+    {
+      "id": "salmon", "name": "Salmon fillet (raw)",
+      "unit": "g", "amount": 150, "per": 100,
+      "kcal": 208, "protein": 20, "carbs": 0, "fat": 13,
+      "adjust": { "min": 100, "max": 250, "step": 10 }
+    },
+    {
+      "id": "potatoes", "name": "Potatoes",
+      "unit": "g", "amount": 250, "per": 100,
+      "kcal": 77, "protein": 2, "carbs": 17, "fat": 0.1,
+      "adjust": { "min": 100, "max": 600, "step": 25 }
+    },
+    {
+      "id": "green-beans", "name": "Green beans",
+      "unit": "g", "amount": 150, "per": 100,
+      "kcal": 31, "protein": 1.8, "carbs": 7, "fat": 0.2,
+      "adjust": { "min": 50, "max": 300, "step": 25 }
+    },
+    {
+      "id": "olive-oil", "name": "Olive oil",
+      "unit": "ml", "amount": 5, "per": 100,
+      "kcal": 820, "protein": 0, "carbs": 0, "fat": 91,
+      "adjust": { "min": 0, "max": 15, "step": 5 }
+    }
+  ]
+}
+

@@ -1,0 +1,38 @@
+{
+  "id": "beef-pasta",
+  "name": "Lean Beef Bolognese Pasta",
+  "tags": ["lunch", "dinner"],
+  "ingredients": [
+    {
+      "id": "pasta", "name": "Pasta (dry)",
+      "unit": "g", "amount": 90, "per": 100,
+      "kcal": 371, "protein": 13, "carbs": 75, "fat": 1.5,
+      "adjust": { "min": 50, "max": 200, "step": 10 }
+    },
+    {
+      "id": "beef", "name": "Lean ground beef 5%",
+      "unit": "g", "amount": 150, "per": 100,
+      "kcal": 137, "protein": 21, "carbs": 0, "fat": 5,
+      "adjust": { "min": 80, "max": 300, "step": 10 }
+    },
+    {
+      "id": "tomato-sauce", "name": "Tomato passata",
+      "unit": "g", "amount": 150, "per": 100,
+      "kcal": 32, "protein": 1.5, "carbs": 5.5, "fat": 0.2,
+      "adjust": { "min": 100, "max": 300, "step": 25 }
+    },
+    {
+      "id": "parmesan", "name": "Parmesan",
+      "unit": "g", "amount": 10, "per": 100,
+      "kcal": 431, "protein": 38, "carbs": 4, "fat": 29,
+      "adjust": { "min": 0, "max": 30, "step": 5 }
+    },
+    {
+      "id": "onion", "name": "Onion",
+      "unit": "pcs", "amount": 0.5, "per": 1,
+      "kcal": 44, "protein": 1.2, "carbs": 10, "fat": 0.1,
+      "adjust": false
+    }
+  ]
+}
+

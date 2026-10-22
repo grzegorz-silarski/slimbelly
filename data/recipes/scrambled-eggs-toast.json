@@ -1,0 +1,38 @@
+{
+  "id": "scrambled-eggs-toast",
+  "name": "Scrambled Eggs on Toast",
+  "tags": ["breakfast"],
+  "ingredients": [
+    {
+      "id": "egg", "name": "Egg (L)",
+      "unit": "pcs", "amount": 3, "per": 1,
+      "kcal": 72, "protein": 6.3, "carbs": 0.4, "fat": 4.8,
+      "adjust": { "min": 1, "max": 6, "step": 1 }
+    },
+    {
+      "id": "egg-white", "name": "Liquid egg whites",
+      "unit": "ml", "amount": 100, "per": 100,
+      "kcal": 52, "protein": 11, "carbs": 0.7, "fat": 0.2,
+      "adjust": { "min": 0, "max": 250, "step": 25 }
+    },
+    {
+      "id": "bread", "name": "Whole wheat bread (slice)",
+      "unit": "pcs", "amount": 2, "per": 1,
+      "kcal": 80, "protein": 4, "carbs": 14, "fat": 1.1,
+      "adjust": { "min": 1, "max": 4, "step": 1 }
+    },
+    {
+      "id": "butter", "name": "Butter",
+      "unit": "g", "amount": 5, "per": 100,
+      "kcal": 717, "protein": 0.9, "carbs": 0.1, "fat": 81,
+      "adjust": { "min": 0, "max": 15, "step": 5 }
+    },
+    {
+      "id": "spinach", "name": "Spinach",
+      "unit": "g", "amount": 50, "per": 100,
+      "kcal": 23, "protein": 2.9, "carbs": 3.6, "fat": 0.4,
+      "adjust": false
+    }
+  ]
+}
+

@@ -1,0 +1,38 @@
+{
+  "id": "greek-yogurt-bowl",
+  "name": "Greek Yogurt Bowl",
+  "tags": ["snack", "breakfast"],
+  "ingredients": [
+    {
+      "id": "greek-yogurt", "name": "Greek yogurt 0%",
+      "unit": "g", "amount": 200, "per": 100,
+      "kcal": 59, "protein": 10, "carbs": 3.6, "fat": 0.4,
+      "adjust": { "min": 100, "max": 500, "step": 25 }
+    },
+    {
+      "id": "berries", "name": "Mixed berries",
+      "unit": "g", "amount": 100, "per": 100,
+      "kcal": 50, "protein": 0.8, "carbs": 12, "fat": 0.3,
+      "adjust": { "min": 50, "max": 250, "step": 25 }
+    },
+    {
+      "id": "granola", "name": "Granola",
+      "unit": "g", "amount": 30, "per": 100,
+      "kcal": 471, "protein": 10, "carbs": 64, "fat": 20,
+      "adjust": { "min": 0, "max": 80, "step": 5 }
+    },
+    {
+      "id": "honey", "name": "Honey",
+      "unit": "g", "amount": 10, "per": 100,
+      "kcal": 304, "protein": 0.3, "carbs": 82, "fat": 0,
+      "adjust": { "min": 0, "max": 30, "step": 5 }
+    },
+    {
+      "id": "almonds", "name": "Almonds",
+      "unit": "g", "amount": 15, "per": 100,
+      "kcal": 579, "protein": 21, "carbs": 22, "fat": 50,
+      "adjust": { "min": 0, "max": 40, "step": 5 }
+    }
+  ]
+}
+

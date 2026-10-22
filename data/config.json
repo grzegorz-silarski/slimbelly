@@ -1,0 +1,22 @@
+{
+  "targets": {
+    "kcal": 2750,
+    "protein": 34,
+    "carbs": 38,
+    "fat": 28
+  },
+  "macroMode": "percentage",
+  "kcalPerGram": {
+    "protein": 4,
+    "carbs": 4,
+    "fat": 9
+  },
+  "plannedMealsPerDay": 4,
+  "tolerance": { "kcal": 3, "protein": 5, "carbs": 5, "fat": 5 },
+  "solver": {
+    "mode": "optimize",
+    "weights": { "kcal": 1.0, "protein": 2.0, "carbs": 1.0, "fat": 1.0 },
+    "ratioPreservation": 0.3
+  }
+}
+

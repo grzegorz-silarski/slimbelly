@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-theme="fantasy">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="SlimBelly – diet planner that scales your meals to hit daily calorie and macro targets." />
+    <meta name="theme-color" content="#6d0076" />
+    <title>SlimBelly – Diet Planner</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>" />
+
+    <!-- daisyUI v5 components + themes (fantasy) -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5/themes.css" rel="stylesheet" type="text/css" />
+    <!-- Tailwind CSS v4 (browser build, no build step) -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- SortableJS for touch-friendly drag & drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15/Sortable.min.js" defer></script>
+
+    <link href="css/app.css" rel="stylesheet" />
+    <script type="module" src="js/main.js"></script>
+  </head>
+  <body class="min-h-screen bg-base-200 text-base-content">
+    <!-- Navbar -->
+    <header class="navbar bg-base-100 shadow-sm sticky top-0 z-30 px-3 lg:px-6 min-h-14">
+      <div class="flex-1 flex items-center gap-2 min-w-0">
+        <span class="text-2xl" aria-hidden="true">🥗</span>
+        <div class="min-w-0">
+          <h1 class="text-lg font-bold leading-tight text-primary">SlimBelly</h1>
+          <p id="today-label" class="text-xs opacity-70 truncate">Today</p>
+        </div>
+      </div>
+      <div class="flex-none flex items-center gap-1">
+        <button type="button" class="btn btn-primary btn-sm hidden lg:inline-flex" data-action="open-add">
+          <span data-icon="plus"></span> Add meal
+        </button>
+        <div class="dropdown dropdown-end">
+          <div tabindex="0" role="button" class="btn btn-ghost btn-sm btn-square" aria-label="Menu" data-icon="menu"></div>
+          <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-40 w-48 p-2 shadow-lg border border-base-300">
+            <li><button type="button" data-action="open-target">Edit daily target</button></li>
+            <li><button type="button" data-action="export">Export day (JSON)</button></li>
+            <li><button type="button" data-action="reset-day" class="text-error">Reset day</button></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <!-- Slim sticky summary (mobile only) -->
+    <div id="summary-bar" class="lg:hidden sticky top-14 z-20 bg-base-100/95 backdrop-blur border-b border-base-300"></div>
+
+    <main class="mx-auto max-w-6xl p-3 pb-28 lg:p-6 grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)] items-start">
+      <aside class="lg:sticky lg:top-20">
+        <div id="summary"></div>
+      </aside>
+
+      <section aria-label="Today's meals" class="min-w-0">
+        <div id="load-errors" class="mb-3 empty:hidden"></div>
+        <div id="meal-list" class="flex flex-col gap-3"></div>
+        <div id="empty-state" class="hidden">
+          <div class="card bg-base-100 border border-dashed border-base-300">
+            <div class="card-body items-center text-center">
+              <span class="text-4xl" aria-hidden="true">🍽️</span>
+              <h3 class="card-title">No meals yet</h3>
+              <p class="opacity-70 text-sm">Add your first meal – amounts are scaled automatically to fit your daily target.</p>
+              <button type="button" class="btn btn-primary mt-2" data-action="open-add"><span data-icon="plus"></span> Add meal</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Floating add button (mobile) -->
+    <button type="button" class="btn btn-primary btn-circle btn-lg shadow-lg fixed bottom-5 right-5 z-30 lg:hidden fab-safe"
+            data-action="open-add" aria-label="Add meal"><span data-icon="plus"></span></button>
+
+    <!-- Add meal modal -->
+    <dialog id="add-meal-modal" class="modal modal-bottom sm:modal-middle" aria-labelledby="add-meal-title">
+      <div class="modal-box max-h-[85vh] flex flex-col p-0">
+        <div class="p-4 pb-2 border-b border-base-300 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 id="add-meal-title" class="font-bold text-lg">Add a meal</h3>
+            <form method="dialog"><button class="btn btn-ghost btn-sm btn-square" aria-label="Close" data-icon="x"></button></form>
+          </div>
+          <label class="input w-full">
+            <span data-icon="search" class="opacity-60"></span>
+            <input type="search" placeholder="Search recipes or ingredients" data-role="search" aria-label="Search recipes" />
+          </label>
+          <div class="flex flex-wrap gap-1" data-role="tags"></div>
+        </div>
+        <ul class="overflow-y-auto p-2 flex-1" data-role="list"></ul>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Meal settings modal -->
+    <dialog id="meal-settings-modal" class="modal modal-bottom sm:modal-middle" aria-labelledby="meal-settings-title">
+      <div class="modal-box">
+        <div class="flex items-center justify-between mb-2">
+          <h3 id="meal-settings-title" class="font-bold text-lg" data-role="title">Meal settings</h3>
+          <form method="dialog"><button class="btn btn-ghost btn-sm btn-square" aria-label="Close" data-icon="x"></button></form>
+        </div>
+        <div data-role="body"></div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Daily target modal -->
+    <dialog id="target-modal" class="modal modal-bottom sm:modal-middle" aria-labelledby="target-modal-title">
+      <div class="modal-box">
+        <div class="flex items-center justify-between mb-3">
+          <h3 id="target-modal-title" class="font-bold text-lg">Daily target</h3>
+          <form method="dialog"><button class="btn btn-ghost btn-sm btn-square" aria-label="Close" data-icon="x"></button></form>
+        </div>
+        <div data-role="body"></div>
+      </div>
+      <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <div id="toasts" class="toast toast-center sm:toast-end toast-bottom z-50 mb-20 lg:mb-0"></div>
+
+    <noscript>
+      <div class="alert alert-error m-4">SlimBelly needs JavaScript enabled.</div>
+    </noscript>
+  </body>
+</html>
